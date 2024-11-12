@@ -56,7 +56,7 @@ class SentimentExtractor:
         # INPUT_IDS
         text = " "+" ".join(tweet.split())
         encoded_txt = self.tokenizer.encode(text)
-        sentiment_tok = SENTIMENT_ID[sentiment]     
+        sentiment_tok = SentimentID[sentiment.upper()].value  
         input_ids[0,:len(encoded_txt.ids)+5] = [0] + encoded_txt.ids + [2,2] + [sentiment_tok] + [2]
         attention_mask[0,:len(encoded_txt.ids)+5] = 1
 
@@ -86,14 +86,12 @@ class SentimentExtractor:
             token_type_ids=token_type_ids
         )
 
-        #prediction_start = np.zeros((1,MAX_LEN))
-        #prediction_end = np.zeros((1,MAX_LEN))
-
         prediction_start = predictions[0]
         prediction_end = predictions[1]
 
         start_idx = np.argmax(prediction_start)
         end_idx = np.argmax(prediction_end)
+
 
         if start_idx > end_idx:
             return tweet

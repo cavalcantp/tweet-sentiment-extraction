@@ -36,7 +36,7 @@ def test_build_model(mocker):
     assert len(built_model.inputs) == 3
     assert len(built_model.outputs) == 2
 
-def test_predict_shape(mocker):
+def test_predict(mocker):
     # Mock the build_model method to return a tf.keras.Model
     build_model_mock = mocker.patch.object(SentimentModel, "build_model", return_value=tf.keras.Model())
     
