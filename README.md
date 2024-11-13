@@ -16,3 +16,10 @@ The service itself is an API (app.py)
 ## Setup for local development and testing
 In a dedicated virtual environment, run **poetry install**
 
+Run unit tests with
+
+**PYTHONPATH=. pytest  -vv**
+
+docker build -t tweet_sentiment_service .
+
+docker run -p 8000:8000 tweet_sentiment_service
