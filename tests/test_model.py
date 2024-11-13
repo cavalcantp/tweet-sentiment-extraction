@@ -1,15 +1,17 @@
 import pytest
-from unittest.mock import MagicMock #, patch
+from unittest.mock import MagicMock
 import numpy as np
 import tensorflow as tf
 from transformers import RobertaConfig, TFRobertaModel
 from tweet_sentiment_service.model import SentimentModel
+from pytest_mock import MockerFixture
+
 
 MOCK_WEIGHTS_PATH = "/path/to/mock_weights.h5"
 MOCK_CONFIG_PATH = "/path/to/mock_config/"
 
 
-def test_initialization(mocker):
+def test_initialization(mocker: MockerFixture) -> None:
     # Mock the build_model method to return a tf.keras.Model
     build_model_mock = mocker.patch.object(SentimentModel, "build_model", return_value=tf.keras.Model())
     
@@ -25,7 +27,7 @@ def test_initialization(mocker):
     build_model_mock.assert_called_once()
     load_weights_mock.assert_called_once()
 
-def test_build_model(mocker):
+def test_build_model(mocker: MockerFixture) -> None:
     # Mock the load_weights method of the model instance
     load_weights_mock = mocker.patch.object(tf.keras.Model, "load_weights", MagicMock())
     # Create the sentiment model with mocked methods
@@ -36,7 +38,7 @@ def test_build_model(mocker):
     assert len(built_model.inputs) == 3
     assert len(built_model.outputs) == 2
 
-def test_predict(mocker):
+def test_predict(mocker: MockerFixture) -> None:
     # Mock the build_model method to return a tf.keras.Model
     build_model_mock = mocker.patch.object(SentimentModel, "build_model", return_value=tf.keras.Model())
     

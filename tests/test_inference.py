@@ -1,10 +1,11 @@
 import pytest
 import numpy as np
 import tensorflow as tf
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from tokenizers import Encoding
 from tweet_sentiment_service.inference import SentimentExtractor, SentimentID
 from tweet_sentiment_service.model import SentimentModel
+from pytest_mock import MockerFixture
 
 
 MOCK_WEIGHTS_PATH = "/path/to/mock_weights.h5"
@@ -12,7 +13,7 @@ MOCK_CONFIG_PATH = "/path/to/mock_config/"
 MAX_LEN = 96
 
 
-def test_initialization(mocker):
+def test_initialization(mocker: MockerFixture) -> None:
     # Given
 
     # Mock the build_model method to return a tf.keras.Model
@@ -40,7 +41,7 @@ def test_initialization(mocker):
     model_init_mock.assert_called_once_with(weights_path=MOCK_WEIGHTS_PATH, config_path=MOCK_CONFIG_PATH)
 
 
-def test_tokenize_and_mask(mocker):
+def test_tokenize_and_mask(mocker: MockerFixture) -> None:
     # Given
     tweet = "This is a happy test tweet."
     sentiment = "positive"
@@ -76,8 +77,7 @@ def test_tokenize_and_mask(mocker):
             ("This is a happy test tweet.", "positive", 7, 11, "happy"), # return selected text
         ]
 )
-def test_extract_sentiment(mocker, tweet, sentiment, start_idx, end_idx, expected_output):
-    print("START")
+def test_extract_sentiment(mocker: MockerFixture, tweet: str, sentiment: str, start_idx: int, end_idx: int, expected_output: str) -> None:
     # Given
     expected_input_ids = np.zeros((1,MAX_LEN),dtype='int32')
     expected_attention_mask = np.zeros((1,MAX_LEN),dtype='int32')
@@ -101,6 +101,7 @@ def test_extract_sentiment(mocker, tweet, sentiment, start_idx, end_idx, expecte
 
     model_prediction_mock = mocker.patch.object(SentimentModel, "predict", return_value=expected_preds)
 
+    # When
     sentiment_extractor = SentimentExtractor(MOCK_WEIGHTS_PATH, MOCK_CONFIG_PATH)
     selected_text = sentiment_extractor.extract_sentiment(tweet, sentiment)
 

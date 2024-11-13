@@ -1,19 +1,22 @@
 import pytest
-from unittest.mock import patch
 from fastapi.testclient import TestClient
 from tweet_sentiment_service.inference import SentimentExtractor
-from tweet_sentiment_service.app import app
+from tweet_sentiment_service.app import app, get_sentiment_extractor
+from pytest_mock import MockerFixture
 
 client = TestClient(app=app)
 
-def test_extract_sentiment_sucess(mocker):
+def test_extract_sentiment_sucess(mocker: MockerFixture) -> None:
     # Given
-    tweet = "This is a test happy tweet"
+    tweet = "This is a test happy tweet."
     sentiment = "positive"
     expected_status = 200
     expected_output = "happy"
-    sentiment_extractor_mock = mocker.patch("tweet_sentiment_service.app.SentimentExtractor")
-    sentiment_extractor_mock.return_value.extract_sentiment.return_value = expected_output
+    # Patch the dependency to use a mock instead of the real extractor
+    sentiment_extractor_mock = mocker.Mock()
+    sentiment_extractor_mock.extract_sentiment.return_value = expected_output
+
+    app.dependency_overrides[get_sentiment_extractor] = lambda: sentiment_extractor_mock
 
 
     # When
@@ -23,7 +26,10 @@ def test_extract_sentiment_sucess(mocker):
     assert response.status_code == expected_status
     assert response.json() == {"status": "success", "selected_text": expected_output}
 
-def test_extract_sentiment_ill_conditioned_request():
+    # Remove override after test
+    app.dependency_overrides.clear()
+
+def test_extract_sentiment_ill_conditioned_request() -> None:
     # Given
     tweet = "This is a test happy tweet."
     sentiment = "ill conditioned sentiment"
@@ -35,11 +41,18 @@ def test_extract_sentiment_ill_conditioned_request():
     assert response.status_code == 400
     assert response.json()["detail"] == "Sentiment must be negative, neutral or positive."
 
-def test_extract_sentiment_inference_error(mocker):
+def test_extract_sentiment_inference_error(mocker: MockerFixture) -> None:
     # Given 
     tweet = "This is a test happy tweet."
     sentiment = "positive"
-    mocker.patch("tweet_sentiment_service.inference.SentimentExtractor.extract_sentiment", side_effect=Exception("test interval error"))
+    # Patch the sentiment extractor to raise an exception
+    def mock_get_sentiment_extractor():
+        extractor_mock = mocker.Mock()
+        extractor_mock.extract_sentiment.side_effect = Exception("test interval error")
+        return extractor_mock
+    
+    app.dependency_overrides[get_sentiment_extractor] = mock_get_sentiment_extractor
+    #mocker.patch("tweet_sentiment_service.inference.SentimentExtractor.extract_sentiment", side_effect=Exception("test interval error"))
 
     # When
     response = client.post("/sentiment", json={"tweet": tweet, "sentiment": sentiment})
@@ -47,6 +60,7 @@ def test_extract_sentiment_inference_error(mocker):
     # Then
     assert response.status_code == 500
     assert response.json()["detail"] == f"Error while extracting sentiment: test interval error"
+    app.dependency_overrides.clear()
 
 
 
