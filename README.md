@@ -38,7 +38,7 @@ Ideally, mocking should be avoided and a light (simple) version of the model sho
 PYTHONPATH=. pytest  -vv**
 ```
 
-#### End to End Testing (including testing the API)
+#### Testing the API
 
 Build the image and spin up a container, then run the e2e workflow
 to test for standard request.
@@ -47,6 +47,7 @@ docker build -t tweet_sentiment_service .
 
 docker run -p 8000:8000 tweet_sentiment_service
 ```
+
 
 ## IMPORTANT OBSERVATION
 I added the weights and config files directly to the Docker image, but in a real production, I would use a model registry like MLFlow. That would
